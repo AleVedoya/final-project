@@ -11,3 +11,6 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 enron_mail_20110402*
+profile*
+*.prof
+*code-workspace
