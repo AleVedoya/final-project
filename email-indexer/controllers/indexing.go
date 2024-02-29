@@ -20,10 +20,6 @@ func CheckIfIndexExists() *http.Response {
 		log.Fatal(err)
 	}
 
-	zincUser := os.Getenv("ZINC_FIRST_ADMIN_USER")
-	zincPass := os.Getenv("ZINC_FIRST_ADMIN_PASSWORD")
-	req.SetBasicAuth(zincUser, zincPass)
-
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal(err)

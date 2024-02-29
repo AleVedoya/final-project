@@ -19,6 +19,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer cpu.Close()
 	pprof.StartCPUProfile(cpu)
 	defer pprof.StopCPUProfile()
 	// END PROFILING
@@ -27,6 +28,9 @@ func main() {
 	startTime := time.Now()
 
 	res := controllers.CheckIfIndexExists()
+	if res == nil {
+		log.Fatal("response is nil")
+	}
 	if res.StatusCode == http.StatusOK {
 		controllers.DeleteIndex(os.Getenv("INDEX_NAME"))
 	}
@@ -35,8 +39,14 @@ func main() {
 		fmt.Println("failed to get emails directory: ", err)
 	}
 
-	controllers.CreateIndex(emails)
-	
+	if err := controllers.CreateIndex(emails); err != nil {
+		log.Fatalf("failed to create index: %v", err)
+	}
+
+	fmt.Println("Result:")
+	fmt.Println("Index:", os.Getenv("INDEX_NAME"))
+	fmt.Println("Records:", len(emails))
+		
 	duration := time.Since(startTime)
 	log.Printf("Finished indexing. Time taken: %.2f seconds", duration.Seconds())
 

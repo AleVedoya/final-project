@@ -1,46 +1,65 @@
-// controllers/parsing.go
 package controllers
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"trucode/finalproject/models"
 )
 
 func GetEmailsDir() ([]models.Email, error) {
-	log.Println("Getting emalis directory")
+	log.Println("Getting emails directory")
 
 	emailsDir := "../data/enron_mail_20110402/maildir/"
-	var records []models.Email
+	var wg sync.WaitGroup
+	files := make(chan string)
+	records := make(chan models.Email)
 
-	log.Printf("Emails Dir: %s", emailsDir)
-
-	err := filepath.Walk(emailsDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Println("Error walking path:", err)
-			return err
-		}
-
-		if !info.IsDir() {
-			emailData, err := processFile(path)
+	go func() {
+		defer close(files)
+		err := filepath.Walk(emailsDir, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
-				log.Println(err)
-				return nil
+				log.Println("Error walking path:", err)
+				return err
 			}
-			records = append(records, emailData)
+			if !info.IsDir() {
+				files <- path
+			}
+			return nil
+		})
+		if err != nil {
+			log.Println("Error walking through directory:", err)
 		}
+	}()
 
-		return nil
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("error walking through directory: %v", err)
+	for i := 0; i < 4; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for file := range files {
+				emailData, err := processFile(file)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+				records <- emailData
+			}
+		}()
 	}
 
-	return records, nil
+	go func() {
+		wg.Wait()
+		close(records)
+	}()
+
+	var result []models.Email
+	for record := range records {
+		result = append(result, record)
+	}
+
+	return result, nil
 }
 
 func processFile(path string) (models.Email, error) {

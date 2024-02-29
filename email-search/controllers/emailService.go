@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	apiEndpoint = os.Getenv("ZINC_SEARCH_SERVER_URL") + "api/" + os.Getenv("INDEX_NAME") + "/_search"
+	// apiEndpoint = os.Getenv("ZINC_SEARCH_SERVER_URL") + "api/" + os.Getenv("INDEX_NAME") + "/_search"
+	apiEndpoint = "http://localhost:4080/api/enron/_search"
 
 	httpClient = &http.Client{}
 )
@@ -25,7 +26,7 @@ func GetEmails(email string) (models.ZincResponse, error) {
 			"field": "content",
 		},
 		"from":        0,
-		"max_results": 200,
+		"max_results": 2000000,
 		"_source":     []string{},
 	}
 

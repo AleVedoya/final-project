@@ -14,3 +14,7 @@ enron_mail_20110402*
 profile*
 *.prof
 *code-workspace
+
+
+.terraform
+.terraform.*

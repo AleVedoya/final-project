@@ -4,7 +4,7 @@
       <EmailSearchBar @search="handleSearch" />
     </section>
 
-    <!-- Modal -->
+    <!-- Modal to show email details -->
     <div class="fixed inset-0 z-10 flex items-center justify-center" :class="{ hidden: !showMail }">
       <div class="fixed inset-0 bg-black opacity-50" @click="closeModal"></div>
       <div class="relative bg-white rounded-lg shadow-lg p-6 overflow-y-auto max-h-[80vh]">
@@ -14,6 +14,23 @@
         <p class="text-gray-800 mb-2"><strong>Date:</strong> {{ emailData.date }}</p>
         <p class="text-gray-800 mb-2"><strong>Content:</strong></p>
         <p class="text-gray-800 whitespace-pre-wrap">{{ emailData.content }}</p>
+      </div>
+    </div>
+
+    <!-- Modal if the term is not found -->
+    <div
+      class="fixed inset-0 z-10 flex items-center justify-center"
+      :class="{ hidden: errorMessage === '' }"
+    >
+      <div class="fixed inset-0 bg-black opacity-50" @click="clearError"></div>
+      <div class="relative bg-white rounded-lg shadow-lg p-6 text-center">
+        <p>{{ errorMessage }}</p>
+        <button
+          class="bg-red-700 mt-4 text-white rounded-md p-2 opacity-90 hover:opacity-100"
+          @click="clearError"
+        >
+          Close
+        </button>
       </div>
     </div>
 
@@ -50,20 +67,6 @@
         </tbody>
       </table>
     </section>
-
-    <!-- Matching emails component -->
-    <section class="flex flex-col items-center space-x-4 overflow-x-auto max-w-full">
-      <button
-        v-for="(email, index) in matchingEmails"
-        :key="index"
-        class="text-sm text-gray-900 bg-gray-200 px-4 py-2 rounded-md whitespace-nowrap"
-        @click="openEmailModal(email)"
-      >
-        {{ email.from }}
-        {{ email.to }}
-        {{ email.subject }}
-      </button>
-    </section>
   </section>
 </template>
 
@@ -93,6 +96,11 @@ const openEmailModal = (email: IEmail) => {
 }
 
 const matchingEmails = ref<IEmail[]>([])
+const errorMessage = ref('')
+
+const clearError = () => {
+  errorMessage.value = ''
+}
 
 const handleSearch = async (searchTerm: string) => {
   try {
@@ -107,6 +115,13 @@ const handleSearch = async (searchTerm: string) => {
     if (!response.ok) throw new Error('Something went wrong')
 
     const { emails } = await response.json()
+
+    if (emails.length === 0) {
+      errorMessage.value = 'Term not found'
+    } else {
+      matchingEmails.value = emails
+      errorMessage.value = ''
+    }
 
     matchingEmails.value = emails
   } catch (err) {
