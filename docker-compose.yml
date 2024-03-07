@@ -1,0 +1,27 @@
+version: '3.7'
+name: "docker-go"
+services:
+  zincsearch:
+    image: public.ecr.aws/zinclabs/zincsearch:latest
+    volumes:
+      - ./data:/data
+    environment:
+      - ZINC_DATA_PATH=/data
+      - ZINC_FIRST_ADMIN_USER=admin
+      - ZINC_FIRST_ADMIN_PASSWORD=Complexpass#123
+    ports:
+      - '4080:4080'
+
+  client:
+    build: ./email-client
+    depends_on:
+      - server
+    ports:
+      - '5173:5173'
+
+  server:
+    build: ./email-search
+    depends_on:
+      - zincsearch
+    ports:
+      - '8080:8080'
