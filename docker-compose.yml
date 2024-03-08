@@ -13,13 +13,14 @@ services:
       - '4080:4080'
 
   client:
-    build: ./email-client
+    build:
+      context: ./email-client
+      args:
+        - VITE_API_URL=$VITE_API_URL
     depends_on:
       - server
     ports:
       - '80:8080'
-    environment:
-      - VITE_API_URL=$VITE_API_URL
 
   server:
     build: ./email-search
