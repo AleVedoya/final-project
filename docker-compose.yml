@@ -7,8 +7,8 @@ services:
       - ./data:/data
     environment:
       - ZINC_DATA_PATH=/data
-      - ZINC_FIRST_ADMIN_USER=admin
-      - ZINC_FIRST_ADMIN_PASSWORD=Complexpass#123
+      - ZINC_FIRST_ADMIN_USER=${ZINC_FIRST_ADMIN_USER}
+      - ZINC_FIRST_ADMIN_PASSWORD=${ZINC_FIRST_ADMIN_PASSWORD}
     ports:
       - '4080:4080'
 
@@ -16,7 +16,7 @@ services:
     build:
       context: ./email-client
       args:
-        - VITE_API_URL=$VITE_API_URL
+        - VITE_API_URL= $VITE_API_URL
     depends_on:
       - server
     ports:
@@ -28,3 +28,5 @@ services:
       - zincsearch
     ports:
       - '8080:8080'
+
+# docker compose up --build

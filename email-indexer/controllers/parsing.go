@@ -14,52 +14,39 @@ func GetEmailsDir() ([]models.Email, error) {
 
 	emailsDir := "../data/enron_mail_20110402/maildir/"
 	var wg sync.WaitGroup
-	files := make(chan string)
-	records := make(chan models.Email)
+	var mu sync.Mutex
+	var records []models.Email
 
-	go func() {
-		defer close(files)
-		err := filepath.Walk(emailsDir, func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				log.Println("Error walking path:", err)
-				return err
-			}
-			if !info.IsDir() {
-				files <- path
-			}
-			return nil
-		})
+	err := filepath.Walk(emailsDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			log.Println("Error walking through directory:", err)
+			log.Println("Error walking path:", err)
+			return err
 		}
-	}()
-
-	for i := 0; i < 4; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for file := range files {
+		if !info.IsDir() {
+			wg.Add(1)
+			go func(file string) {
+				defer wg.Done()
 				emailData, err := processFile(file)
 				if err != nil {
-					log.Println(err)
-					continue
+					log.Println("Error processing file:", err)
+					return
 				}
-				records <- emailData
-			}
-		}()
+				mu.Lock()
+				records = append(records, emailData)
+				mu.Unlock()
+			}(path)
+		}
+		return nil
+	})
+
+	if err != nil {
+		log.Println("Error walking through directory:", err)
+		return nil, err
 	}
 
-	go func() {
-		wg.Wait()
-		close(records)
-	}()
+	wg.Wait()
 
-	var result []models.Email
-	for record := range records {
-		result = append(result, record)
-	}
-
-	return result, nil
+	return records, nil
 }
 
 func processFile(path string) (models.Email, error) {
