@@ -3,8 +3,6 @@ name: "docker-go"
 services:
   zincsearch:
     image: public.ecr.aws/zinclabs/zincsearch:latest
-    volumes:
-      - ./data:/data
     environment:
       - ZINC_DATA_PATH=/data
       - ZINC_FIRST_ADMIN_USER=${ZINC_FIRST_ADMIN_USER}
