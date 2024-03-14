@@ -106,6 +106,7 @@ func DeleteIndex(indexName string) error {
 	return nil
 }
 
+// Cretae a basic auth http request
 func makeRequestWithAuth(method string, url string, body string) (*http.Request, error) {
 	req, err := http.NewRequest(method, url, strings.NewReader(body))
 	if err != nil {

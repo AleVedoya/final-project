@@ -1,12 +1,12 @@
 package models
 
 type Email struct {
-	Id        string   `json:"id"`
-	From      string   `json:"from"`
-	To        []string   `json:"to"`
-	Content   string   `json:"content"`
-	Subject   string   `json:"subject"`
-	Date      string   `json:"date"`
+	Id      string   `json:"id"`
+	From    string   `json:"from"`
+	To      []string `json:"to"`
+	Content string   `json:"content"`
+	Subject string   `json:"subject"`
+	Date    string   `json:"date"`
 }
 
 type ZincResponse struct {
