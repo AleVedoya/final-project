@@ -39,10 +39,6 @@ func main() {
 		fmt.Println("failed to get emails directory: ", err)
 	}
 
-	if err := controllers.CreateIndex(emails); err != nil {
-		log.Fatalf("failed to create index: %v", err)
-	}
-
 	fmt.Println("Result:")
 	fmt.Println("Index:", os.Getenv("INDEX_NAME"))
 	fmt.Println("Records:", len(emails))

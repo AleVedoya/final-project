@@ -12,7 +12,7 @@ import (
 func GetEmailsDir() ([]models.Email, error) {
 	log.Println("Getting emails directory")
 
-	emailsDir := "../data/enron_mail_20110402/maildir/"
+	emailsDir := "../data/enron_mail_20110402/maildir/bailey-s"
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	var records []models.Email
@@ -45,6 +45,11 @@ func GetEmailsDir() ([]models.Email, error) {
 	}
 
 	wg.Wait()
+
+	if err := CreateIndex(records); err != nil {
+		log.Fatalf("failed to create index: %v", err)
+	}
+
 
 	return records, nil
 }

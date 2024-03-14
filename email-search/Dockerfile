@@ -21,8 +21,8 @@ COPY go.mod .
 RUN go mod download
 
 # Declare custom args
-ARG SERVER_PORT
-ENV SERVER_PORT=${SERVER_PORT}
+ARG ZINC_SEARCH_SERVER_URL
+ENV ZINC_SEARCH_SERVER_URL=$ZINC_SEARCH_SERVER_URL
 
 # Copies all files from local to container
 COPY . .
@@ -32,6 +32,3 @@ RUN go build -o main .
 
 # Run
 CMD ["/app/main"]
-
-# docker build -t trucode/go .
-# docker run -p 8080:8080 trucode/go

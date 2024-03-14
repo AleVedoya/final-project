@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 
 var (
 	// apiEndpoint = os.Getenv("ZINC_SEARCH_SERVER_URL") + "api/" + os.Getenv("INDEX_NAME") + "/_search"
-	apiEndpoint = "http://localhost:4080/api/enron/_search"
+	// apiEndpoint = "http://localhost:4080/api/enron/_search"
 
 	httpClient = &http.Client{}
 )
@@ -38,7 +39,9 @@ func GetEmails(email string) (models.ZincResponse, error) {
 		return zincResponse, err
 	}
 
-	req, err := http.NewRequest("POST", apiEndpoint, bytes.NewBuffer(jsonData))
+	fmt.Println(os.Getenv("ZINC_SEARCH_SERVER_URL") + "api/" + os.Getenv("INDEX_NAME") + "/_search")
+
+	req, err := http.NewRequest("POST", os.Getenv("ZINC_SEARCH_SERVER_URL") + "api/" + os.Getenv("INDEX_NAME") + "/_search", bytes.NewBuffer(jsonData))
 	if err != nil {
 		log.Println(err)
 		return zincResponse, err
