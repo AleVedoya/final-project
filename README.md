@@ -66,7 +66,7 @@ El código consiste en un componente Vue.js que proporciona una interfaz de usua
 - **Componentes Externos**:
   - `EmailSearchBar`: Componente externo que proporciona un campo de búsqueda de correos electrónicos.
 
-## Dependencias
+## Tecnologías
 
 - `Backend`: Golang
 - `Base de Datos`: Zincsearch
