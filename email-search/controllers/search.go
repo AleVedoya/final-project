@@ -13,6 +13,7 @@ type JsonBody struct {
 
 func Search(w http.ResponseWriter, r *http.Request) {
 	var body JsonBody
+	// read & decode json from request (r)
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		utils.JsonWriter(w, http.StatusBadRequest, "invalid request body") // Status Error 400
@@ -26,7 +27,9 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// set response to json type & status = 200
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	// send data in json format
 	json.NewEncoder(w).Encode(data)
 }

@@ -5,7 +5,6 @@ export interface IEmail {
   content: string;
   subject: string;
   date: string;
-  highlight: string[];
 }
 
 export interface IEmailResponse {

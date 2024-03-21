@@ -1,14 +1,16 @@
 <template>
-  <section class="app">
-    <section>
-      <EmailSearchBar @search="handleSearch" />
+  <section class="app w-4/5 m-auto border p-2 mt-2 rounded-md	">
+    <section class="flex flex-col items-center">
+      <EmailSearchBar @search="handleSearch" class="w-full" />
     </section>
 
     <!-- Modal to show email details -->
     <div class="fixed inset-0 z-10 flex items-center justify-center" :class="{ hidden: !showMail }">
       <div class="fixed inset-0 bg-black opacity-50" @click="closeModal"></div>
-      <div class="relative bg-white rounded-lg shadow-lg p-6 overflow-y-auto max-h-[80vh]">
-        <h2 class="text-xl font-bold mb-4">{{ emailData.subject }}</h2>
+      <div
+        class="relative bg-white rounded-lg shadow-lg p-6 overflow-y-auto max-h-[80vh] w-full sm:max-w-lg"
+      >
+        <h2 class="text-lg md:text-xl font-bold mb-4">{{ emailData.subject }}</h2>
         <p class="text-gray-800 mb-2"><strong>From:</strong> {{ emailData.from }}</p>
         <p class="text-gray-800 mb-2"><strong>To:</strong> {{ emailData.to }}</p>
         <p class="text-gray-800 mb-2"><strong>Date:</strong> {{ emailData.date }}</p>
@@ -23,7 +25,7 @@
       :class="{ hidden: errorMessage === '' }"
     >
       <div class="fixed inset-0 bg-black opacity-50" @click="clearError"></div>
-      <div class="relative bg-white rounded-lg shadow-lg p-6 text-center">
+      <div class="relative bg-white rounded-lg shadow-lg p-6 text-center w-full sm:max-w-md">
         <p>{{ errorMessage }}</p>
         <button
           class="bg-red-700 mt-4 text-white rounded-md p-2 opacity-90 hover:opacity-100"
@@ -35,43 +37,61 @@
     </div>
 
     <!-- Emails list -->
-    <section class="table-wrapper max-h-[600px] overflow-y-auto">
-      <table class="w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
+    <section class="w-full overflow-x-auto">
+      <table class="w-full divide-y divide-gray-200 border">
+        <thead class="bg-emerald-800 rounded-md border">
+          <tr class=" rounded-md p-2 border">
             <th
-              class="bg-emerald-800 px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider"
+              class="px-4 py-3 text-left text-xs sm:text-sm md:text-base font-medium text-gray-200 uppercase tracking-wider"
+            >
+              Date
+            </th>
+            <th
+              class="px-4 py-3 text-left text-xs sm:text-sm md:text-base font-medium text-gray-200 uppercase tracking-wider"
             >
               From
             </th>
             <th
-              class="bg-emerald-800 px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider"
+              class="px-4 py-3 text-left text-xs sm:text-sm md:text-base font-medium text-gray-200 uppercase tracking-wider"
             >
               To
             </th>
             <th
-              class="bg-emerald-800 px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider"
+              class="px-4 py-3 text-left text-xs sm:text-sm md:text-base font-medium text-gray-200 uppercase tracking-wider"
             >
               Subject
             </th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="(email, index) in matchingEmails" :key="index" @click="openEmailModal(email)">
-            <td class="px-6 py-4 whitespace-nowrap">{{ email.from }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
+          <tr v-for="(email, index) in paginatedEmails" :key="index" @click="openEmailModal(email)">
+            <td class="text-sm px-4 py-2 whitespace-nowrap">{{ email.date }}</td>
+            <td class="text-sm px-4 py-2 whitespace-nowrap">{{ email.from }}</td>
+            <td class="text-sm px-4 py-2 whitespace-wrap">
               {{ email.to === '' ? 'No recipient' : email.to }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ email.subject }}</td>
+            <td class="text-sm px-4 py-2 whitespace-nowrap">{{ email.subject }}</td>
           </tr>
         </tbody>
       </table>
+    </section>
+    <!-- Pagination Controls -->
+    <section class="flex justify-end p-2">
+      <div class="pagination-controls flex items-center py-4 justify-end rounded-md p-2 border">
+        <button @click="prevPage" :disabled="currentPage <= 1">
+          <img src="/public/chevron-left.svg" alt="Anterior" />
+        </button>
+        <span>Page {{ currentPage }} of {{ totalPages }}</span>
+        <button @click="nextPage" :disabled="currentPage >= totalPages">
+          <img src="/public/chevron-right.svg" alt="Siguiente" />
+        </button>
+      </div>
     </section>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import type { IEmail, IEmailResponse } from './interfaces/IEmail'
 import EmailSearchBar from './components/EmailSearchBar.vue'
 
@@ -95,6 +115,8 @@ const openEmailModal = (email: IEmail) => {
   }
 }
 
+const resultsPerPage = 10
+const currentPage = ref(1)
 const matchingEmails = ref<IEmail[]>([])
 const errorMessage = ref('')
 
@@ -102,14 +124,14 @@ const clearError = () => {
   errorMessage.value = ''
 }
 
-const handleSearch = async (searchTerm: string) => {
+const handleSearch = async (searchTerm: string, sortField: string) => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ searchTerm })
+      body: JSON.stringify({ searchTerm, sortField })
     })
 
     if (!response.ok) throw new Error('Something went wrong')
@@ -122,8 +144,6 @@ const handleSearch = async (searchTerm: string) => {
       matchingEmails.value = emails
       errorMessage.value = ''
     }
-
-    matchingEmails.value = emails
   } catch (err) {
     console.error(err)
   }
@@ -142,11 +162,33 @@ const handleEscapeKey = (event: KeyboardEvent) => {
     closeModal()
   }
 }
+
+const paginatedEmails = computed(() => {
+  const start = (currentPage.value - 1) * resultsPerPage
+  const end = start + resultsPerPage
+  return matchingEmails.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(matchingEmails.value.length / resultsPerPage)
+})
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
 </script>
 
 <style scoped>
+/* Emails list style */
 .table-wrapper {
   max-height: 600px;
 }
 </style>
-

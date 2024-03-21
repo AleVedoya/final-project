@@ -13,6 +13,7 @@ func GetEmailsDir() ([]models.Email, error) {
 	log.Println("Getting emails directory")
 
 	emailsDir := "../data/enron_mail_20110402/maildir/bailey-s"
+	// emailsDir := "../data/enron_mail_20110402/maildir/"
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	var records []models.Email

@@ -11,7 +11,7 @@ import (
 )
 
 func CheckIfIndexExists() *http.Response {
-	// http://localhost:4080/api/enron/_mapping
+	// http://localhost:4080/api/{indexName}/_mapping
 	log.Printf("Checking if index %s exists", os.Getenv("INDEX_NAME"))
 	url := os.Getenv("ZINC_SEARCH_SERVER_URL") + "api/" + os.Getenv("INDEX_NAME") + "/_mapping"
 
@@ -42,7 +42,6 @@ func CheckIfIndexExists() *http.Response {
 
 func CreateIndex(records []models.Email) error {
 	log.Printf("Creating %s index:", os.Getenv("INDEX_NAME"))
-
 	// http://localhost:4080/api/_bulkv2
 	bulkURL := fmt.Sprintf(os.Getenv("ZINC_SEARCH_SERVER_URL") + "api/_bulkv2")
 	indexName := os.Getenv("INDEX_NAME")
@@ -83,7 +82,7 @@ func CreateIndex(records []models.Email) error {
 }
 
 func DeleteIndex(indexName string) error {
-	// http://localhost:4080/api/index/enron
+	// http://localhost:4080/api/index/{indexName}
 	url := os.Getenv("ZINC_SEARCH_SERVER_URL") + "api/index/" + os.Getenv("INDEX_NAME")
 
 	req, err := makeRequestWithAuth("DELETE", url, "")

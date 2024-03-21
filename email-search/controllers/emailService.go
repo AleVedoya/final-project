@@ -3,7 +3,6 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -12,23 +11,19 @@ import (
 	"trucode/search/models"
 )
 
-var (
-	// apiEndpoint = os.Getenv("ZINC_SEARCH_SERVER_URL") + "api/" + os.Getenv("INDEX_NAME") + "/_search"
-	// apiEndpoint = "http://localhost:4080/api/enron/_search"
+func GetEmails(text string) (models.ZincResponse, error) {
 
-	httpClient = &http.Client{}
-)
-
-func GetEmails(email string) (models.ZincResponse, error) {
-	requestBody := map[string]interface{}{
-		"search_type": "match",
-		"query": map[string]interface{}{
-			"term":  email,
-			"field": "content",
+	requestBody := models.SearchQueryRequest{
+		SearchType: "match",
+		Query: models.SearchQuery{
+			Term:      text,
+			Field:     "_all",
+			StartTime: "2000-06-02T14:28:31.894Z",
+			EndTime:   "2030-12-02T15:28:31.894Z",
 		},
-		"from":        0,
-		"max_results": 2000000,
-		"_source":     []string{},
+		SortFields: []string{"date"},
+		From:       0,
+		MaxResults: 2000000,
 	}
 
 	var zincResponse models.ZincResponse
@@ -39,9 +34,9 @@ func GetEmails(email string) (models.ZincResponse, error) {
 		return zincResponse, err
 	}
 
-	fmt.Println(os.Getenv("ZINC_SEARCH_SERVER_URL") + "api/" + os.Getenv("INDEX_NAME") + "/_search")
+	apiEndpoint := os.Getenv("ZINC_SEARCH_SERVER_URL") + "api/" + os.Getenv("INDEX_NAME") + "/_search"
 
-	req, err := http.NewRequest("POST", os.Getenv("ZINC_SEARCH_SERVER_URL") + "api/" + os.Getenv("INDEX_NAME") + "/_search", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", apiEndpoint, bytes.NewBuffer(jsonData))
 	if err != nil {
 		log.Println(err)
 		return zincResponse, err
@@ -50,7 +45,7 @@ func GetEmails(email string) (models.ZincResponse, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(os.Getenv("ZINC_FIRST_ADMIN_USER"), os.Getenv("ZINC_FIRST_ADMIN_PASSWORD"))
 
-	res, err := httpClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Println(err)
 		return zincResponse, err
@@ -72,6 +67,10 @@ func GetEmails(email string) (models.ZincResponse, error) {
 		return zincResponse, err
 	}
 
+	if len(response.Hits.Hits) > 1 && response.Hits.Hits[0].SortFields == nil {
+		log.Println("Advertencia: La ordenación por fecha no se está aplicando.")
+	}
+
 	zincResponse = models.ZincResponse{
 		Took:   response.Hits.Total.Value,
 		Emails: convertToEmails(response),
@@ -88,9 +87,9 @@ func convertToEmails(response models.EmailSearchResult) []models.Email {
 			Id:      hit.ID,
 			From:    hit.Source.From,
 			To:      hit.Source.To,
+			Date:    hit.Source.Date,
 			Subject: hit.Source.Subject,
 			Content: hit.Source.Content,
-			Date:    hit.Source.Date,
 		}
 		emails = append(emails, email)
 	}

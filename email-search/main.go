@@ -20,3 +20,10 @@ func main() {
 	log.Fatal(http.ListenAndServe(port, server))
 
 }
+
+// "../data/enron_mail_20110402/maildir/bailey-s"
+// debra.bailey@enron.com (SI)
+// Credit/Legal (SI)
+// <23746398.1075841959452.JavaMail.evans@thyme> (NO)
+// Gentlemen (SI)
+// cerrar (NO)
