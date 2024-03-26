@@ -1,5 +1,5 @@
 <template>
-  <section class="app w-4/5 m-auto border p-2 mt-2 rounded-md	">
+  <section class="app w-4/5 m-auto border p-2 mt-2 rounded-md">
     <section class="flex flex-col items-center">
       <EmailSearchBar @search="handleSearch" class="w-full" />
     </section>
@@ -40,7 +40,7 @@
     <section class="w-full overflow-x-auto">
       <table class="w-full divide-y divide-gray-200 border">
         <thead class="bg-emerald-800 rounded-md border">
-          <tr class=" rounded-md p-2 border">
+          <tr class="rounded-md p-2 border">
             <th
               class="px-4 py-3 text-left text-xs sm:text-sm md:text-base font-medium text-gray-200 uppercase tracking-wider"
             >
@@ -79,12 +79,23 @@
     <section class="flex justify-end p-2">
       <div class="pagination-controls flex items-center py-4 justify-end rounded-md p-2 border">
         <button @click="prevPage" :disabled="currentPage <= 1">
-          <img src="/public/chevron-left.svg" alt="Anterior" />
+          <img src="./assets/chevron-left.svg" alt="Anterior" />
         </button>
         <span>Page {{ currentPage }} of {{ totalPages }}</span>
         <button @click="nextPage" :disabled="currentPage >= totalPages">
-          <img src="/public/chevron-right.svg" alt="Siguiente" />
+          <img src="./assets/chevron-right.svg" alt="Siguiente" />
         </button>
+        <!-- Add buttons for each page -->
+        <template v-if="totalPages > 1">
+          <button
+            v-for="pageNumber in displayedPages"
+            :key="pageNumber"
+            @click="goToPage(pageNumber)"
+            class="pagination-button flex items-center justify-end rounded-md p-2 border"
+          >
+            {{ pageNumber }}
+          </button>
+        </template>
       </div>
     </section>
   </section>
@@ -125,27 +136,33 @@ const clearError = () => {
 }
 
 const handleSearch = async (searchTerm: string, sortField: string) => {
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/search`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ searchTerm, sortField })
-    })
+  if (searchTerm === '') {
+    matchingEmails.value = []
+    currentPage.value = 1
+    errorMessage.value = ''
+  } else {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ searchTerm, sortField })
+      })
 
-    if (!response.ok) throw new Error('Something went wrong')
+      if (!response.ok) throw new Error('Something went wrong')
 
-    const { emails } = await response.json()
+      const { emails } = await response.json()
 
-    if (emails.length === 0) {
-      errorMessage.value = 'Term not found'
-    } else {
-      matchingEmails.value = emails
-      errorMessage.value = ''
+      if (emails.length === 0) {
+        errorMessage.value = 'Term not found'
+      } else {
+        matchingEmails.value = emails
+        errorMessage.value = ''
+      }
+    } catch (err) {
+      console.error(err)
     }
-  } catch (err) {
-    console.error(err)
   }
 }
 
@@ -184,11 +201,28 @@ function prevPage() {
     currentPage.value--
   }
 }
+function goToPage(page: number) {
+  currentPage.value = page
+}
+
+const displayedPages = computed(() => {
+  const numPagesToShow = 5
+  const currentPageIndex = currentPage.value
+  const lastPage = totalPages.value
+  let startPage = Math.max(1, currentPageIndex - Math.floor(numPagesToShow / 2))
+  let endPage = Math.min(lastPage, startPage + numPagesToShow - 1)
+
+  if (lastPage - endPage < Math.floor(numPagesToShow / 2)) {
+    startPage = Math.max(1, lastPage - numPagesToShow + 1)
+  }
+
+  return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i)
+})
 </script>
 
-<style scoped>
+<!-- <style scoped>
 /* Emails list style */
 .table-wrapper {
   max-height: 600px;
 }
-</style>
+</style> -->
