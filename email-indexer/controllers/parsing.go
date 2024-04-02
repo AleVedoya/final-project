@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 	"trucode/finalproject/models"
 )
 
@@ -51,7 +52,6 @@ func GetEmailsDir() ([]models.Email, error) {
 		log.Fatalf("failed to create index: %v", err)
 	}
 
-
 	return records, nil
 }
 
@@ -86,9 +86,25 @@ func parseEmail(rawEmail string) models.Email {
 	}
 
 	recipients := strings.Split(header["To"], ", ")
+
+	date := header["Date"]
+	date = strings.TrimSpace(date)
+	date = strings.ReplaceAll(date, "\r", "")
+	lastIndex := strings.Index(date, " (")
+	if lastIndex != -1 {
+		date = date[:lastIndex]
+	}
+
+	layout := "Mon, 2 Jan 2006 15:04:05 -0700"
+
+	dateParsed, err := time.Parse(layout, date)
+	if err != nil {
+		return email
+	}
+
 	email = models.Email{
 		Message_ID: header["Message-ID"],
-		Date:       header["Date"],
+		Date:       dateParsed,
 		From:       header["From"],
 		To:         recipients,
 		Subject:    header["Subject"],
@@ -97,3 +113,6 @@ func parseEmail(rawEmail string) models.Email {
 
 	return email
 }
+
+// Libreria que se podría usar para no hardcodear las fechas
+// "github.com/araddon/dateparse"

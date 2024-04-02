@@ -75,9 +75,13 @@
         </tbody>
       </table>
     </section>
+
     <!-- Pagination Controls -->
     <section class="flex justify-end p-2">
       <div class="pagination-controls flex items-center py-4 justify-end rounded-md p-2 border">
+        <button @click="firstPage" :disabled="currentPage <= 1">
+          <img src="./assets/first-page.svg" alt="First page" />
+        </button>
         <button @click="prevPage" :disabled="currentPage <= 1">
           <img src="./assets/chevron-left.svg" alt="Anterior" />
         </button>
@@ -85,6 +89,7 @@
         <button @click="nextPage" :disabled="currentPage >= totalPages">
           <img src="./assets/chevron-right.svg" alt="Siguiente" />
         </button>
+
         <!-- Add buttons for each page -->
         <template v-if="totalPages > 1">
           <button
@@ -96,6 +101,9 @@
             {{ pageNumber }}
           </button>
         </template>
+        <button @click="lastPage" :disabled="currentPage >= totalPages">
+          <img src="./assets/last-page.svg" alt="Last Page" />
+        </button>
       </div>
     </section>
   </section>
@@ -190,6 +198,14 @@ const totalPages = computed(() => {
   return Math.ceil(matchingEmails.value.length / resultsPerPage)
 })
 
+function firstPage() {
+  currentPage.value = 1
+}
+
+function lastPage() {
+  currentPage.value = totalPages.value
+}
+
 function nextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++
@@ -220,9 +236,3 @@ const displayedPages = computed(() => {
 })
 </script>
 
-<!-- <style scoped>
-/* Emails list style */
-.table-wrapper {
-  max-height: 600px;
-}
-</style> -->

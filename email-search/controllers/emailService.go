@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-
 	"trucode/search/models"
 )
 
@@ -24,6 +23,16 @@ func GetEmails(text string) (models.ZincResponse, error) {
 		SortFields: []string{"date"},
 		From:       0,
 		MaxResults: 2000000,
+		Highlight: map[string]interface{}{
+			"pre_tags":  []string{"<strong>"},
+			"post_tags": []string{"</strong>"},
+			"fields": map[string]interface{}{
+				"content": map[string]interface{}{
+					"pre_tags":  []string{},
+					"post_tags": []string{},
+				},
+			},
+		},
 	}
 
 	var zincResponse models.ZincResponse
@@ -59,16 +68,10 @@ func GetEmails(text string) (models.ZincResponse, error) {
 		return zincResponse, err
 	}
 
-	res.Body.Close()
-
 	response := models.EmailSearchResult{}
 	if err := json.Unmarshal(body, &response); err != nil {
 		log.Println(err)
 		return zincResponse, err
-	}
-
-	if len(response.Hits.Hits) > 1 && response.Hits.Hits[0].SortFields == nil {
-		log.Println("Advertencia: La ordenación por fecha no se está aplicando.")
 	}
 
 	zincResponse = models.ZincResponse{
@@ -83,14 +86,21 @@ func convertToEmails(response models.EmailSearchResult) []models.Email {
 	emails := []models.Email{}
 
 	for _, hit := range response.Hits.Hits {
+
 		email := models.Email{
-			Id:      hit.ID,
-			From:    hit.Source.From,
-			To:      hit.Source.To,
-			Date:    hit.Source.Date,
-			Subject: hit.Source.Subject,
-			Content: hit.Source.Content,
+			Id:        hit.ID,
+			From:      hit.Source.From,
+			To:        hit.Source.To,
+			Date:      hit.Source.Date,
+			Subject:   hit.Source.Subject,
+			Content:   hit.Source.Content,
+			Highlight: hit.Highlight.Content,
 		}
+
+		// if len(hit.SortFields) > 0 {
+		// 	fmt.Println("SortFields:", hit.SortFields)
+		// }
+
 		emails = append(emails, email)
 	}
 

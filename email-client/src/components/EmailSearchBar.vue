@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineEmits } from 'vue'
+import { ref } from 'vue'
 import ActionButton from './ActionButton.vue'
 
 const searchText = ref('')

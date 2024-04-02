@@ -1,12 +1,13 @@
 package models
 
 type Email struct {
-	Id      string   `json:"id"`
-	From    string   `json:"from"`
-	To      []string `json:"to"`
-	Date    string   `json:"date"`
-	Subject string   `json:"subject"`
-	Content string   `json:"content"`
+	Id        string   `json:"id"`
+	From      string   `json:"from"`
+	To        []string `json:"to"`
+	Date      string   `json:"date"`
+	Subject   string   `json:"subject"`
+	Content   string   `json:"content"`
+	Highlight []string `json:"highlight"`
 }
 
 type ZincResponse struct {
@@ -29,6 +30,9 @@ type EmailSearchResult struct {
 			Timestamp  string   `json:"@timestamp"`
 			Source     Email    `json:"_source"`
 			SortFields []string `json:"sortFields"`
+			Highlight  struct {
+				Content []string `json:"content"`
+			} `json:"highlight"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
@@ -40,6 +44,7 @@ type SearchQueryRequest struct {
 	MaxResults int                    `json:"max_results"`
 	SortFields []string               `json:"sort_fields"`
 	Source     map[string]interface{} `json:"_source"`
+	Highlight  map[string]interface{} `json:"highlight"`
 }
 
 type SearchQuery struct {
